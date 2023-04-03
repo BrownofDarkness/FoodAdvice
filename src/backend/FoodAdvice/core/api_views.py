@@ -11,8 +11,8 @@ from rest_framework import status
 from django.http import JsonResponse, request
 from rest_framework.authtoken.models import Token
 
-from .models import Client
-from .serializers import LoginSerializer, ClientSerializer
+from .models import Client, Restaurant
+from .serializers import LoginSerializer, ClientSerializer,RestaurantSerializer
 
 User = get_user_model()
 
@@ -37,20 +37,24 @@ class LoginViewSet(CreateModelMixin, GenericViewSet):
             return Response({'detail': 'username or password invalid'}, status=status.HTTP_400_BAD_REQUEST)
 
 
-"""@method_decorator(swagger_auto_schema(
-    request_body=ClientSerializer()
-), 'create')
+# @method_decorator(swagger_auto_schema(
+#     request_body=ClientSerializer()
+# ), 'create')
 class ClientViewSet(CreateModelMixin, ListModelMixin, UpdateModelMixin, RetrieveModelMixin, GenericViewSet):
     serializer_class = ClientSerializer
     permission_classes = [AllowAny]
 
+    def get_serializer_class(self):
+        return ClientSerializer
+
     def get_queryset(self):
         user = self.request.user
-        if(user):
+        if user:
+            print(user)
             queryset = Client.objects.filter(user=user.id)
         else:
             queryset = "you must be authenticated"
-        print(user)
+            print("not found")
         return queryset
 
     def create(self, request, *args, **kwargs):
@@ -72,4 +76,41 @@ class ClientViewSet(CreateModelMixin, ListModelMixin, UpdateModelMixin, Retrieve
         if instance.user == user:
             return super().partial_update(request, *args, **kwargs)
         return Response({'detail': 'you are not allow to update this client_profile'})
-"""
+
+
+class RestaurantViewSet(CreateModelMixin, ListModelMixin, UpdateModelMixin, RetrieveModelMixin, GenericViewSet):
+    serializer_class = RestaurantSerializer
+    permission_classes = [AllowAny]
+
+    def get_serializer_class(self):
+        return RestaurantSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        if user:
+            print(user)
+            queryset = Restaurant.objects.filter(user=user.id)
+        else:
+            queryset = "you must be authenticated"
+            print("not found")
+        return queryset
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+        return Response(ClientSerializer(instance).data, status=201)
+
+    def update(self, request, *args, **kwargs):
+        instance: Client = self.get_object()
+        user = self.get_user()
+        if instance.user == user:
+            return super().update(request, *args, **kwargs)
+        return JsonResponse({'detail': 'you are nor allow to update this restaurant_profile'})
+
+    def partial_update(self, request, *args, **kwargs):
+        instance: Client = self.get_object()
+        user = self.get_user()
+        if instance.user == user:
+            return super().partial_update(request, *args, **kwargs)
+        return Response({'detail': 'you are not allow to update this restaurant_profile'})

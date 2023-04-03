@@ -3,6 +3,7 @@ from abc import ABC
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from rest_framework import fields
+from rest_framework.authtoken.models import Token
 from rest_framework.serializers import ValidationError
 from .models import Client, Restaurant, Localisation, Carte, Plat, Like, Reservation, ReservedPlate, FavMenu, FavMenuPlate
 
@@ -27,17 +28,36 @@ class UserSerializer(serializers.ModelSerializer):
         }
 
 
+class UserSerializer2(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'password']
+        extra_kwargs = {
+            'password': {
+                'write_only': True,
+                'required': True,
+            },
+            'email': {
+                'required': True,
+            },
+            'username': {
+                'required': True,
+            },
+        }
+
+
 class LoginSerializer(serializers.Serializer):
     username = fields.CharField(required=True, max_length=120, help_text='User\'s username')
     password = fields.CharField(required=True, max_length=120, help_text='User\'s password')
 
 
-class ClientSerializer(serializers.Serializer):
+class ClientSerializer(serializers.ModelSerializer):
     user = UserSerializer()
 
     class Meta:
         model = Client
-        fields = ['id', 'user', 'birthday', 'phone', 'disease', 'image']
+        fields = '__all__'
+        # fields = ['id', 'user', 'birthday', 'phone', 'disease', 'image']
         extra_kwargs = {
             'phone': {
                 'required': True,
@@ -54,7 +74,10 @@ class ClientSerializer(serializers.Serializer):
         print(usr)
         serializer = UserSerializer(data=usr)
         serializer.is_valid(raise_exception=True)
-        user_instance = serializer.create(usr)
+        user_instance = serializer.save()
+        user_instance.set_password(user_instance.password)
+        user_instance.save()
+        Token.objects.create(user=user_instance)
         print(user_instance.password)
         validated_data['user'] = user_instance
 
@@ -65,27 +88,31 @@ class ClientSerializer(serializers.Serializer):
         return client
 
 
-class LocalisationSerializer(serializers.Serializer):
+class LocalisationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Localisation
+        fields = "__all__"
 
-        fields = '__all__'
 
+class RestaurantSerializer(serializers.ModelSerializer):
 
-class RestaurantSerializer(serializers.Serializer):
-    localistion = LocalisationSerializer()
+    user = UserSerializer2()
+    localisation = LocalisationSerializer()
 
     class Meta:
         model = Restaurant
-        fields = ['id', 'user', 'name', 'localisation', 'phone_1', 'phone_1', 'image']
+        fields = ['id','name', 'phone_1', 'phone_2', 'image', 'user', 'localisation']
 
     def create(self, validated_data):
         user = validated_data.pop('user')
         print(user)
         serializer = UserSerializer(data=user)
         serializer.is_valid(raise_exception=True)
-        user_instance = serializer.create(user)
+        user_instance = serializer.save()
+        user_instance.set_password(user_instance.password)
+        user_instance.save()
+        Token.objects.create(user=user_instance)
         print(user_instance.password)
         validated_data['user'] = user_instance
 
@@ -96,28 +123,28 @@ class RestaurantSerializer(serializers.Serializer):
         return resto
 
 
-class CarteSerializer(serializers.Serializer):
+class CarteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Carte
         fields = '__all__'
 
 
-class PlateSerializer(serializers.Serializer):
+class PlateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Plat
         fields = '__all__'
 
 
-class LikeSerializer(serializers.Serializer):
+class LikeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Like
         fields = '__all__'
 
 
-class ReservationSerializer(serializers.Serializer):
+class ReservationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Reservation
@@ -140,7 +167,7 @@ class ReservationSerializer(serializers.Serializer):
         return client"""
 
 
-class FavMenuSerializer(serializers.Serializer):
+class FavMenuSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FavMenu
