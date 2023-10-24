@@ -20,7 +20,7 @@ class ServiceAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Plat)
-admin.site.register(ReservedPlate)
 admin.site.register(Like)
-admin.site.register(FavMenu)
-admin.site.register(FavMenuPlate)
+admin.site.register(Menu)
+admin.site.register(MenuPlate)
+admin.site.register(SavedMenu)

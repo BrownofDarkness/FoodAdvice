@@ -5,8 +5,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import fields
 from rest_framework.authtoken.models import Token
 from rest_framework.serializers import ValidationError
-from .models import Client, Restaurant, Localisation, Carte, Plat, Like, Reservation, ReservedPlate, FavMenu, \
-    FavMenuPlate
+from .models import Client, Restaurant, Localisation, Carte, Plat, Like, Reservation, Menu
 
 User = get_user_model()
 
@@ -47,9 +46,9 @@ class UserSerializer2(serializers.ModelSerializer):
         }
 
 
-    class LoginSerializer(serializers.Serializer):
-        username = fields.CharField(required=True, max_length=120, help_text='User\'s username')
-        password = fields.CharField(required=True, max_length=120, help_text='User\'s password')
+class LoginSerializer(serializers.Serializer):
+    username = fields.CharField(required=True, max_length=120, help_text='User\'s username')
+    password = fields.CharField(required=True, max_length=120, help_text='User\'s password')
 
 
 class ClientSerializer(serializers.ModelSerializer):
@@ -168,9 +167,9 @@ class ReservationSerializer(serializers.ModelSerializer):
         return client"""
 
 
-class FavMenuSerializer(serializers.ModelSerializer):
+class MenuSerializer(serializers.ModelSerializer):
     class Meta:
-        model = FavMenu
+        model = Menu
         fields = '__all__'
 
     def create(self, validated_data):
