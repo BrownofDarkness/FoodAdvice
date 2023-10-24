@@ -4054,7 +4054,7 @@
 										"$ref": "AAAAAAGLYa9Yv50YmgE="
 									},
 									"edgePosition": 2,
-									"text": "1"
+									"text": "*"
 								},
 								{
 									"_type": "EdgeLabelView",
@@ -4327,7 +4327,7 @@
 										"$ref": "AAAAAAGLYbKElKNPMAk="
 									},
 									"edgePosition": 2,
-									"text": "1"
+									"text": "*"
 								},
 								{
 									"_type": "EdgeLabelView",
@@ -16370,7 +16370,7 @@
 								"reference": {
 									"$ref": "AAAAAAGHMgIfT3YjXu0="
 								},
-								"multiplicity": "1"
+								"multiplicity": "*"
 							},
 							"end2": {
 								"_type": "UMLAssociationEnd",
@@ -16476,7 +16476,7 @@
 								"reference": {
 									"$ref": "AAAAAAGLYat+dXAhHQQ="
 								},
-								"multiplicity": "1"
+								"multiplicity": "*"
 							},
 							"end2": {
 								"_type": "UMLAssociationEnd",
