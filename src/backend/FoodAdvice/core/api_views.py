@@ -6,13 +6,13 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny,IsAuthenticatedOrReadOnly
 from drf_yasg.utils import swagger_auto_schema
 from django.utils.decorators import method_decorator
-from django.contrib.auth import get_user_model, authenticate, logout
+from django.contrib.auth import get_user_model, authenticate, logout, login
 from rest_framework import status
 from django.http import JsonResponse, request
 from rest_framework.authtoken.models import Token
 
-from .models import Client, Restaurant
-from .serializers import LoginSerializer, ClientSerializer,RestaurantSerializer
+from .models import Client, Restaurant, Carte, Plat
+from .serializers import LoginSerializer, ClientSerializer, RestaurantSerializer, PlateSerializer, CarteSerializer
 
 User = get_user_model()
 
@@ -28,6 +28,7 @@ class LoginViewSet(CreateModelMixin, GenericViewSet):
         password = serializer.validated_data.get('password')
         user = authenticate(username=username, password=password)
         if user is not None:
+            login(request, user)
             token = user.auth_token.key
             context = {
                 'Token': token,
@@ -87,11 +88,11 @@ class RestaurantViewSet(CreateModelMixin, ListModelMixin, UpdateModelMixin, Retr
 
     def get_queryset(self):
         user = self.request.user
-        if user:
+        if user.is_authenticated:
             print(user)
             queryset = Restaurant.objects.filter(user=user.id)
         else:
-            queryset = "you must be authenticated"
+            queryset = []
             print("not found")
         return queryset
 
@@ -99,7 +100,11 @@ class RestaurantViewSet(CreateModelMixin, ListModelMixin, UpdateModelMixin, Retr
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
-        return Response(ClientSerializer(instance).data, status=201)
+        return Response(RestaurantSerializer(instance).data, status=201)
+
+    def list(self, request , *args, **kwargs):
+        queries = Restaurant.objects.all()
+        return
 
     def update(self, request, *args, **kwargs):
         instance: Client = self.get_object()
@@ -114,3 +119,54 @@ class RestaurantViewSet(CreateModelMixin, ListModelMixin, UpdateModelMixin, Retr
         if instance.user == user:
             return super().partial_update(request, *args, **kwargs)
         return Response({'detail': 'you are not allow to update this restaurant_profile'})
+
+
+class CarteViewSet(CreateModelMixin, ListModelMixin, UpdateModelMixin, RetrieveModelMixin, GenericViewSet):
+    serializer_class = CarteSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_serializer_class(self):
+        return CarteSerializer
+
+    def get_queryset(self):
+        queryset = Carte.objects.all()
+        return queryset
+
+    def my_cart(self, request, *args, **kwargs):
+        user = self.request.user
+        qst = Carte.objects.filter(resto=user.resto.id)
+        if qst is None:
+            qst = []
+        return qst
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+        return Response(CarteSerializer(instance).data, status=201)
+
+
+class PlateViewSet(CreateModelMixin, ListModelMixin, UpdateModelMixin, RetrieveModelMixin, GenericViewSet):
+    serializer_class = PlateSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_serializer_class(self):
+        return PlateSerializer
+
+    def get_queryset(self):
+        queryset = Plat.objects.all()
+        return queryset
+
+    def my_plates(self, request, *args, **kwargs):
+        user = self.request.user
+        qst = Plat.objects.filter(carte=user.resto.carte.id)
+        if qst is None:
+            qst = []
+        return qst
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+        return Response(PlateSerializer(instance).data, status=201)
+
